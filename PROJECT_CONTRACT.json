@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "metrics": {
+    "production_loc": 2429,
+    "production_files": 32,
+    "production_packages": 9,
+    "test_files": 12,
+    "production_functions": 196,
+    "decision_points": 379
+  },
+  "persistence": {
+    "module": "go.etcd.io/bbolt",
+    "entities": [
+      "InspectionRecord",
+      "AuditEvent",
+      "InspectionBatch",
+      "Attachment",
+      "CollaborationNote"
+    ],
+    "reopen_test": "TestPersistenceSurvivesReopen"
+  },
+  "workflows": [
+    {
+      "steps": [
+        "register batch material",
+        "parse inspection rows",
+        "validate record data",
+        "persist the confirmed result"
+      ],
+      "test": "TestWorkflowImportValidateReport"
+    },
+    {
+      "steps": [
+        "locate record",
+        "assign reviewer",
+        "record decision",
+        "archive confirmed record"
+      ],
+      "test": "TestWorkflowReviewArchive"
+    },
+    {
+      "steps": [
+        "search ledger",
+        "select record",
+        "add collaborator note",
+        "publish summary"
+      ],
+      "test": "TestWorkflowCollaborationQuery"
+    }
+  ]
+}
