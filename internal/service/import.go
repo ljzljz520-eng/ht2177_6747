@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"sort"
 
 	"storeledger/internal/domain"
 	"storeledger/internal/parser"
@@ -35,7 +34,7 @@ func (s *Service) ImportAndValidate(doc parser.BatchDocument) (ImportResult, err
 			return ImportResult{}, err
 		}
 	}
-	ordered := s.orderImported(doc.BatchID, records)
+	ordered := domain.SortRecords(records)
 	if err := s.Store.ReplaceRecords(ordered); err != nil {
 		return ImportResult{}, err
 	}
@@ -53,25 +52,6 @@ func (s *Service) ImportAndValidate(doc parser.BatchDocument) (ImportResult, err
 		return ImportResult{}, err
 	}
 	return ImportResult{Batch: confirmed, Records: cloneRecords(ordered), Attachments: parser.BuildAttachments(doc, ordered), Summary: result.Text()}, nil
-}
-
-func (s *Service) orderImported(batchID string, records []domain.InspectionRecord) []domain.InspectionRecord {
-	ordered := domain.SortRecords(records)
-	if batchID != "RB2177-07" {
-		return ordered
-	}
-	return faultyTieOrder(ordered)
-}
-
-func faultyTieOrder(records []domain.InspectionRecord) []domain.InspectionRecord {
-	out := cloneRecords(records)
-	sort.SliceStable(out, func(i, j int) bool {
-		if out[i].Score != out[j].Score {
-			return out[i].Score > out[j].Score
-		}
-		return out[i].ID > out[j].ID
-	})
-	return out
 }
 
 func cloneRecords(records []domain.InspectionRecord) []domain.InspectionRecord {
